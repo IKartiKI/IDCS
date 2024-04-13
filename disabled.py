@@ -2,13 +2,20 @@ from ultralytics import YOLO
 import cv2
 import cvzone
 import math
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import rospy
 
 
 cap=cv2.VideoCapture(0)
+bridge = CvBridge()
+rospy.init_node('image_publisher', anonymous=True)
+image_publisher = rospy.Publisher('special', Image, queue_size=10)
+
 # cap=set(3, 640)
 # cap=set(4, 480)
 
-model=YOLO(r'D:\deeplearning\vihaaan\gestures.pt')
+model=YOLO(r'/home/gauri/test_wk/src/IDCS/gestures.pt')
 classNames = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'afraid', 'afternoon',
                'agree', 'angry', 'animal', 'b', 'baby', 'bad', 'bean', 'bird', 'book', 'bored', 
                'boy', 'bread', 'brother', 'butter', 'bye', 'c', 'cake', 'cat', 'chef', 'chicken', 'chocolate', 'circle', 'close hand', 'coco cola', 'coffee', 
@@ -27,6 +34,8 @@ classNames = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'afraid', '
                  'wednesday', 'welcome', 'what', 'where', 'woman', 'worried', 'x', 'y', 'year', 'yes', 'z']
 while True:
     success, img=cap.read()
+    ros_image_msg = bridge.cv2_to_imgmsg(img, encoding="bgr8")
+    image_publisher.publish(ros_image_msg)
     results=model(img,stream=True)
     for r in results:
         boxes=r.boxes
